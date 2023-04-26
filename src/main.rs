@@ -1,79 +1,96 @@
 use std::io;
+use rand::Rng;
 
-struct Student {
-    grades: Vec<f32>
-}
-
-impl Student {
-    fn new() -> Student {
-        Student {
-            grades: Vec::new()
-        }
-    }
-
-    fn add_grade(&mut self, grade: f32) {
-        self.grades.push(grade)
-    }
-
-    fn avg_grades(&self) -> f32 {
-        let total: f32 = self.grades.iter().sum();
-    
-        total / self.grades.len() as f32
-    }
+enum Player {
+    X,
+    O
 }
 
 fn main() {
-
-    let grades = input_to_back();
-
-    let mut student = Student::new();
+    let game_on = true;
+    let mut player_turn = starter_player();
     
-    for grade in grades {
-        student.add_grade(grade)
-    }
-    
-    println!("{}", student.avg_grades())
-    
-}
+    let mut game_table_data: Vec<Vec<&str>> = Vec::from([
+        Vec::from(["_", "|", "_", "|", "_"]),
+        Vec::from(["_", "|", "_", "|", "_"]),
+        Vec::from([" ", "|", " ", "|", " "]),
+    ]);
 
-fn input_to_back() -> Vec<f32> {
-    let mut grades = Vec::new();
+    while game_on {
 
-    println!("How many grades to insert: ");
+        println!("{}\n", build_current_game(&game_table_data));
 
-    let mut input_grades = String::new();
-
-    io::stdin().read_line(&mut input_grades).unwrap();
-
-    println!("Tip the {} grades: ", input_grades.trim());
-
-    for _ in 0..input_grades.trim().parse::<i8>().unwrap() {
         let mut input = String::new();
 
-        io::stdin().read_line(&mut input).unwrap();
+        match player_turn {
+            Player::X => {
+                println!("Player X turn");
+                println!("Tip the position you want to play the X (row column): ");
+            },
+            Player::O => {
+                println!("Player O turn");
+                println!("Tip the position you want to play the O (row column): ");
+            }
+        };
 
-        if let Ok(float_value) = input.trim().parse::<f32>() {
-            grades.push(float_value)
-        }
+        io::stdin()
+            .read_line(&mut input)
+            .unwrap();
 
-        if let Ok(int_value) = input.trim().parse::<i32>() {
-            grades.push(int_value as f32)
-        }
+        let input_data: Vec<&str> = input.split(' ').collect();
+
+        let row = input_data[0].trim().parse::<usize>().unwrap() - 1;
+
+        let column_calc = (2 as usize).pow(input_data[1].trim().parse::<usize>().unwrap() as u32 - 1);
+
+        let column = if column_calc != 1 {
+            column_calc
+        } else {
+            0
+        };
+        println!("{}", column);
+        game_table_data[row][column] = match player_turn {
+            Player::X => "X",
+            Player::O => "O"
+        };
+
+        player_turn = match player_turn {
+            Player::X => Player::O,
+            Player::O => Player::X
+        };
     }
-
-    grades
-
 }
 
-#[test]
-fn it_should_be_a_test() {
-    let grades: Vec<f32> = vec![10.0, 7.0, 6.5, 6.5];
+fn build_current_game(game_table_data: &Vec<Vec<&str>>) -> String {
 
-    let mut student = Student::new();
-    
-    for grade in grades {
-        student.add_grade(grade)
+    let mut game_table = String::new();
+
+    for i in game_table_data[0].iter().collect::<Vec<_>>() {
+        game_table.push_str(i);
     }
     
-    assert_eq!(7.5, student.avg_grades())
+    game_table.push_str("\n");
+
+    for i in game_table_data[1].iter().collect::<Vec<_>>() {
+        game_table.push_str(i);
+    }
+
+    game_table.push_str("\n");
+
+    for i in game_table_data[2].iter().collect::<Vec<_>>() {
+        game_table.push_str(i);
+    }
+    
+    game_table
+}
+
+fn starter_player() -> Player {
+    let mut rng = rand::thread_rng();
+    let random_number = rng.gen_range(0..2);
+
+    if random_number == 0 {
+        Player::X
+    } else {
+        Player::O
+    }
 }
