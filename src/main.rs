@@ -105,39 +105,129 @@ fn get_input() -> (usize, usize) {
 }
 
 struct GameTable {
-    x_hash_table: HashMap<usize, usize>,
-    o_hash_table: HashMap<usize, usize>
+    x_positions: Vec<(usize, usize)>,
+    o_positions: Vec<(usize, usize)>
 }
 
 impl GameTable {
     fn new() -> Self {
         GameTable {
-            x_hash_table: HashMap::new(),
-            o_hash_table: HashMap::new()
+            x_positions: Vec::new(),
+            o_positions: Vec::new()
         }
     }
 
     fn build(&mut self, game_table_data: &Vec<Vec<&str>>) {
         for i in 0..game_table_data.iter().collect::<Vec<_>>().len() {
             for j in 0..game_table_data[i].iter().collect::<Vec<_>>().len() {
-                if game_table_data[i][j] == "X" {
-                    self.x_hash_table.insert(i, j);
-                }
-                
-                if game_table_data[i][j] == "O" {
-                    self.o_hash_table.insert(i, j);
+                match game_table_data[i][j] {
+                    "X" => self.x_positions.push((i, j)),
+                    "O" => self.o_positions.push((i, j)),
+                    _ => continue
                 }
             }
         }
     }
+
+    fn verify_game_win(&self, game_table_data: &Vec<Vec<&str>>) -> Option<String> {
+        
+        if has_three_equal_numbers(&self.x_positions) {
+            return Some(String::from("X"))
+        }
+
+        if has_three_equal_numbers(&self.o_positions) {
+            return Some(String::from("O"))
+        }
+
+        if let Some(winner) = get_diagonal(game_table_data) {
+            return Some(String::from(winner))
+        }
+
+        if let Some(winner) = get_reverse_diagonal(game_table_data) {
+            return Some(String::from(winner))
+        }
+        
+        None
+    }
+
 }
 
-fn verify_win(game_on: &mut bool, game_table_data: &Vec<Vec<&str>>) {
+fn verify_win(game_on: &mut bool, game_table_data: &Vec<Vec<&str>>) -> Option<String> {
     let mut game_table = GameTable::new();
 
     game_table.build(&game_table_data);
 
-    //verifiy
+    if let Some(winner) = game_table.verify_game_win(game_table_data) {
+        *game_on = false;
+        
+        println!("{}\n", build_current_game(&game_table_data));
 
-    *game_on = false;
+        println!("{} is the winner!", winner)
+    }
+
+    None
+
+}
+
+fn has_three_equal_numbers(vec: &Vec<(usize, usize)>) -> bool {
+
+    let mut row_count = HashMap::new();
+    let mut column_count = HashMap::new();
+    
+    for position in vec.iter() {
+        row_count.entry(position.0)
+            .and_modify(|e| *e += 1)
+            .or_insert(1);
+
+        column_count.entry(position.1)
+            .and_modify(|e| *e += 1)
+            .or_insert(1);
+    }
+    
+    match row_count.into_values().collect::<Vec<usize>>().iter().find(|&&x| x == 3) {
+        Some(_) => true,
+        None => {
+            match column_count.into_values().collect::<Vec<usize>>().iter().find(|&&x| x == 3) {
+                Some(_) => true,
+                None => false
+            }
+        }
+    }
+
+}
+
+fn get_diagonal(matrix: &Vec<Vec<&str>>) -> Option<String> {
+    let mut diagonal = Vec::new();
+    
+    for i in 0..matrix.len() {
+        diagonal.push(matrix[i][i]);
+    }
+
+    if diagonal.iter().filter(|e| e.contains("X")).collect::<Vec<_>>().len() >= 3 {
+        return Some(String::from("X"))
+    }
+
+    if diagonal.iter().filter(|e| e.contains("O")).collect::<Vec<_>>().len() >= 3 {
+        return Some(String::from("O"))
+    }
+    
+    None
+}
+
+fn get_reverse_diagonal(matrix: &Vec<Vec<&str>>) -> Option<String> {
+    let mut diagonal = Vec::new();
+    
+    for i in 0..matrix.len() {
+        diagonal.push(matrix[matrix.len()-1-i][i]);
+    }
+
+    if diagonal.iter().filter(|e| e.contains("X")).collect::<Vec<_>>().len() >= 3 {
+        return Some(String::from("X"))
+    }
+
+    if diagonal.iter().filter(|e| e.contains("O")).collect::<Vec<_>>().len() >= 3 {
+        return Some(String::from("O"))
+    }
+    
+    None
 }
