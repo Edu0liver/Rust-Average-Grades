@@ -33,6 +33,11 @@ fn main() {
 
         let (row, column) = get_input();
         
+        if game_table_data[row][column] == "X" || game_table_data[row][column] == "O" {
+            println!("Tente outra posição!\n");
+            continue
+        };
+
         game_table_data[row][column] = match player_turn {
             Player::X => "X",
             Player::O => "O"
@@ -41,8 +46,8 @@ fn main() {
         verify_win(&mut game_on, &game_table_data);
 
         player_turn = match player_turn {
-            Player::X => Player::O,
-            Player::O => Player::X
+            Player::X => Player::X,
+            Player::O => Player::O
         };
     }
 }
