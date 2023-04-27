@@ -18,7 +18,7 @@ fn main() {
 
     while game_on {
 
-        println!("{}\n", build_current_game(&game_table_data));
+        println!("\n{}\n", build_current_game(&game_table_data));
 
         match player_turn {
             Player::X => {
@@ -46,8 +46,8 @@ fn main() {
         verify_win(&mut game_on, &game_table_data);
 
         player_turn = match player_turn {
-            Player::X => Player::X,
-            Player::O => Player::O
+            Player::X => Player::O,
+            Player::O => Player::X
         };
     }
 }
@@ -145,11 +145,11 @@ impl GameTable {
         }
 
         if let Some(winner) = get_diagonal(game_table_data) {
-            return Some(String::from(winner))
+            return Some(winner)
         }
 
         if let Some(winner) = get_reverse_diagonal(game_table_data) {
-            return Some(String::from(winner))
+            return Some(winner)
         }
         
         None
@@ -202,36 +202,33 @@ fn has_three_equal_numbers(vec: &Vec<(usize, usize)>) -> bool {
 }
 
 fn get_diagonal(matrix: &Vec<Vec<&str>>) -> Option<String> {
-    let mut diagonal = Vec::new();
     
-    for i in 0..matrix.len() {
-        diagonal.push(matrix[i][i]);
-    }
+    let a = &matrix[0][4];
+    let b = &matrix[1][2];
+    let c = &matrix[2][0];
 
-    if diagonal.iter().filter(|e| e.contains("X")).collect::<Vec<_>>().len() >= 3 {
+    if a == &"X" && b == &"X" && c == &"X" {
         return Some(String::from("X"))
     }
 
-    if diagonal.iter().filter(|e| e.contains("O")).collect::<Vec<_>>().len() >= 3 {
-        return Some(String::from("O"))
+    if a == &"O" && b == &"O" && c == &"O" {
+        return Some(String::from("X"))
     }
     
     None
 }
 
 fn get_reverse_diagonal(matrix: &Vec<Vec<&str>>) -> Option<String> {
-    let mut diagonal = Vec::new();
-    
-    for i in 0..matrix.len() {
-        diagonal.push(matrix[matrix.len()-1-i][i]);
-    }
+    let a = &matrix[0][0];
+    let b = &matrix[1][2];
+    let c = &matrix[2][4];
 
-    if diagonal.iter().filter(|e| e.contains("X")).collect::<Vec<_>>().len() >= 3 {
+    if a == &"X" && b == &"X" && c == &"X" {
         return Some(String::from("X"))
     }
 
-    if diagonal.iter().filter(|e| e.contains("O")).collect::<Vec<_>>().len() >= 3 {
-        return Some(String::from("O"))
+    if a == &"O" && b == &"O" && c == &"O" {
+        return Some(String::from("X"))
     }
     
     None
