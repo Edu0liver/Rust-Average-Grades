@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, collections::HashMap};
 use rand::Rng;
 
 enum Player {
@@ -7,7 +7,7 @@ enum Player {
 }
 
 fn main() {
-    let game_on = true;
+    let mut game_on = true;
     let mut player_turn = starter_player();
     
     let mut game_table_data: Vec<Vec<&str>> = Vec::from([
@@ -20,8 +20,6 @@ fn main() {
 
         println!("{}\n", build_current_game(&game_table_data));
 
-        let mut input = String::new();
-
         match player_turn {
             Player::X => {
                 println!("Player X turn");
@@ -33,26 +31,14 @@ fn main() {
             }
         };
 
-        io::stdin()
-            .read_line(&mut input)
-            .unwrap();
-
-        let input_data: Vec<&str> = input.split(' ').collect();
-
-        let row = input_data[0].trim().parse::<usize>().unwrap() - 1;
-
-        let column_calc = (2 as usize).pow(input_data[1].trim().parse::<usize>().unwrap() as u32 - 1);
-
-        let column = if column_calc != 1 {
-            column_calc
-        } else {
-            0
-        };
-        println!("{}", column);
+        let (row, column) = get_input();
+        
         game_table_data[row][column] = match player_turn {
             Player::X => "X",
             Player::O => "O"
         };
+
+        verify_win(&mut game_on, &game_table_data);
 
         player_turn = match player_turn {
             Player::X => Player::O,
@@ -93,4 +79,65 @@ fn starter_player() -> Player {
     } else {
         Player::O
     }
+}
+
+fn get_input() -> (usize, usize) {
+
+    let mut input = String::new();
+
+    io::stdin()
+        .read_line(&mut input)
+        .unwrap();
+
+    let input_data: Vec<&str> = input.split(' ').collect();
+
+    let row = input_data[0].trim().parse::<usize>().unwrap() - 1;
+
+    let column_calc = (2 as usize).pow(input_data[1].trim().parse::<usize>().unwrap() as u32 - 1);
+
+    let column = if column_calc != 1 {
+        column_calc
+    } else {
+        0
+    };
+
+    (row, column)
+}
+
+struct GameTable {
+    x_hash_table: HashMap<usize, usize>,
+    o_hash_table: HashMap<usize, usize>
+}
+
+impl GameTable {
+    fn new() -> Self {
+        GameTable {
+            x_hash_table: HashMap::new(),
+            o_hash_table: HashMap::new()
+        }
+    }
+
+    fn build(&mut self, game_table_data: &Vec<Vec<&str>>) {
+        for i in 0..game_table_data.iter().collect::<Vec<_>>().len() {
+            for j in 0..game_table_data[i].iter().collect::<Vec<_>>().len() {
+                if game_table_data[i][j] == "X" {
+                    self.x_hash_table.insert(i, j);
+                }
+                
+                if game_table_data[i][j] == "O" {
+                    self.o_hash_table.insert(i, j);
+                }
+            }
+        }
+    }
+}
+
+fn verify_win(game_on: &mut bool, game_table_data: &Vec<Vec<&str>>) {
+    let mut game_table = GameTable::new();
+
+    game_table.build(&game_table_data);
+
+    //verifiy
+
+    *game_on = false;
 }
